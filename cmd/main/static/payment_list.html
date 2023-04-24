@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Amigo do Café</title>
+    <script type="text/javascript" src="script.js"></script>
+    <link rel="stylesheet" href="global.css">
+</head>
+
+<body>
+
+
+    <div class='container'>
+        <form action="/pay" method="post">
+            <div class='window'>
+
+                <div class='order-info'>
+                    <div class='order-info-content'>
+                        <h2>Pague um café para seu amigo</h2>
+                        <h4>Sugestões de valores</h4>
+                        <div class='line'></div>
+                        <table class='order-table'>
+                            <tbody>
+                                <tr>
+                                    <td><img src='cafe1.png' class='full-width'></img>
+                                    </td>
+                                    <td>
+                                        <br> <span class='thin'>Café coado</span>
+                                        <br>O cafezinho da padaria!<br>
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class='price'>R$2,00</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+                        <div class='line'></div>
+                        <table class='order-table'>
+                            <tbody>
+                                <tr>
+                                    <td><img src='cafe4.png' class='full-width'></img>
+                                    </td>
+                                    <td>
+                                        <br> <span class='thin'>Café espresso</span>
+                                        <br>Um café mais forte!<br>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class='price'>R$5,00</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class='line'></div>
+                        <table class='order-table'>
+                            <tbody>
+                                <tr>
+                                    <td><img src='cafe3.png' class='full-width'></img>
+                                    </td>
+                                    <td>
+                                        <br> <span class='thin'>Macchiato</span>
+                                        <br>Esse amigo merece!<br>
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class='price'>$10,00</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class='line'></div>
+                        <div class='total'>
+
+                            Valor desejado R$
+                            <input class='amount-field' type="text" id="amount" name="amount" value="2,00" />
+
+
+                        </div>
+                    </div>
+                </div>
+                <div class='credit-info'>
+                    <div class='credit-info-content'>
+                        <h2>Insira seus dados</h2>
+                        <h4></h4>
+                        Informe seu CPF
+                        <input class='input-field' name="cpf"></input>
+                        Seu nome
+                        <input class='input-field' name="name"></input>
+                        Seu e-mail
+                        <input class='input-field' name="email"></input>
+
+                        <table class='half-input-table'>
+                            <tr>
+                                <td>Selecione seu banco: </td>
+                                <td>
+
+                                    <select class="select" name="bank">
+                                        {{range .Data}}
+
+                                        <option class="select" name="bank" value="{{.Id}}">{{.CustomerFriendlyName}}
+                                        </option>
+
+                                        {{end}}
+                                    </select>
+
+                                </td>
+                            </tr>
+
+                        </table>
+
+                        <div>
+                            <div class="line" style="margin-top: 20px;"></div>
+                            <label>Seu amigo:</label>
+                            <label name="code" value="{{ .Beneficiary.Code}}"> </label>
+                            <h2 class="friend">{{ .Beneficiary.Name}} ({{ .Beneficiary.Code}})</h2>
+                        </div>
+
+                        <label class="friend">Quer ser amigo? Clique aqui</label>
+
+                        <button class='pay-btn'>Pagar</button>
+
+
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</body>
+
+</html>
