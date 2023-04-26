@@ -118,8 +118,8 @@
                         <div>
                             <div class="line" style="margin-top: 20px;"></div>
                             <label>Seu amigo:</label>
-                            <label name="code" value="{{ .Beneficiary.Code}}"> </label>
-                            <h2 class="friend">{{ .Beneficiary.Name}} ({{ .Beneficiary.Code}})</h2>
+                            <input type="hidden" id="code" name="code" value="{{.Beneficiary.Code}}"></input>
+                            <h2 class=" friend">{{ .Beneficiary.Name}} ({{ .Beneficiary.Code}})</h2>
                         </div>
 
                         <label class="friend">Quer ser amigo? Clique aqui</label>

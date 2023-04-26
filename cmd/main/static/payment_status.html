@@ -30,50 +30,52 @@
             </div>
             <div class='credit-info'>
                 <div class='credit-info-content'>
-                    <div>
-                        <h4>Não é amigo? Cadastre-se:</h4>
-                    </div>
-                    <h4></h4>
-                    Informe seu CPF
-                    <input class='input-field' name="cpf"></input>
-                    Seu nome
-                    <input class='input-field' name="name"></input>
-                    Seu e-mail
-                    <input class='input-field' name="email"></input>
+                    <form action="/register" method="post">
+                        <div>
+                            <h4>Não é amigo? Cadastre-se:</h4>
+                        </div>
+                        <h4></h4>
+                        Informe seu CPF
+                        <input class='input-field' name="cpf"></input>
+                        Seu nome
+                        <input class='input-field' name="name"></input>
+                        Seu e-mail
+                        <input class='input-field' name="email"></input>
 
 
-                    <h4>Escolha o banco onde receberá dinheiro</h4>
-                    <table style="margin-top: 10px;" class='half-input-table'>
-                        <tr>
-                            <td>Selecione seu banco: </td>
-                            <td>
+                        <h4>Escolha o banco onde receberá dinheiro</h4>
+                        <table style="margin-top: 10px;" class='half-input-table'>
+                            <tr>
+                                <td>Selecione seu banco: </td>
+                                <td>
 
-                                <select class="select" name="bank">
-                                    {{range .Banks}}
+                                    <select class="select" name="ispb">
+                                        {{range .Banks}}
 
-                                    <option class="select" name="ispb" value="{{.ISPB}}">{{.Name}}
-                                    </option>
+                                        <option class="select" name="ispb" value="{{.ISPB}}">{{.Name}}
+                                        </option>
 
-                                    {{end}}
-                                </select>
+                                        {{end}}
+                                    </select>
 
-                            </td>
-                        </tr>
-                    </table>
+                                </td>
+                            </tr>
+                        </table>
 
-                    <table style="margin-top: 10px;" class="half-input-table">
-                        <tr>
-                            <td> Agência
-                                <input class='input-field' name="issuer"></input>
-                            </td>
-                            <td>
-                                Conta corrente
-                                <input class='input-field' name="number"></input>
-                            </td>
-                        </tr>
-                    </table>
+                        <table style="margin-top: 10px;" class="half-input-table">
+                            <tr>
+                                <td> Agência
+                                    <input class='input-field' name="issuer"></input>
+                                </td>
+                                <td>
+                                    Conta corrente
+                                    <input class='input-field' name="number"></input>
+                                </td>
+                            </tr>
+                        </table>
 
-                    <button class='pay-btn'>Registrar</button>
+                        <button class='pay-btn'>Registrar</button>
+                    </form>
                 </div>
             </div>
         </div>

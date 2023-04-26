@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -9,9 +10,12 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ricardovano/qpay/internal/entity"
+	"github.com/ricardovano/qpay/internal/infra/database"
 )
 
 func main() {
@@ -27,7 +31,7 @@ func main() {
 	http.Handle("/cafe2.png", fs)
 	http.Handle("/cafe3.png", fs)
 	http.Handle("/cafe4.png", fs)
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":80", nil)
 }
 
 func registerHandler(w http.ResponseWriter, r *http.Request) {
@@ -37,25 +41,51 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Register beneficiary
-	var beneficiary entity.Beneficiary
-	beneficiary.LocalInstrument = "MANU"
-	beneficiary.CPFCNPJ = FormatCPF(r.FormValue("cpf"))
-	beneficiary.Name = r.FormValue("name")
-	beneficiary.ISPB = r.FormValue("ispb")
-	beneficiary.Issuer = r.FormValue("issuer")
-	beneficiary.Number = r.FormValue("number")
-	beneficiary.AccountType = "CACC"
-	beneficiary.Email = r.FormValue("email")
+	if r.Method == "POST" {
 
-	//generate
-	beneficiary.Code = "ri5vano7rh1"
+		var beneficiary entity.Beneficiary
+		beneficiary.LocalInstrument = "MANU"
+		beneficiary.CPFCNPJ = FormatCPF(r.FormValue("cpf"))
+		beneficiary.Name = r.FormValue("name")
+		beneficiary.ISPB = r.FormValue("ispb")
+		beneficiary.Issuer = r.FormValue("issuer")
+		beneficiary.Number = r.FormValue("number")
+		beneficiary.AccountType = "CACC"
+		beneficiary.Email = r.FormValue("email")
 
-	//SAVE ON DATABASE
+		//generate
+		beneficiary.Code = getRandonString()
 
-	//SEND EMAIL WITH LINK TO THE FRIEND (FULL URL)
+		//SAVE ON DATABASE
+		database.CreateBeneficiary(beneficiary)
 
-	//REDIRECT TO REGISTER COMPLETE SITE
+		println("Created beneficiary with code " + beneficiary.Code)
+
+		//SEND EMAIL WITH LINK TO THE FRIEND (FULL URL)
+
+		//REDIRECT TO REGISTER COMPLETE SITE
+	}
+
+	if r.Method == "GET" {
+		wd, err := os.Getwd()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		tmpl, err := template.ParseFiles(wd + "/static/payment_register.html")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		//data := database.GetAllBeneficiaries()
+
+		err = tmpl.Execute(w, "")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
 
 }
 
@@ -67,6 +97,9 @@ func payHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	code := r.FormValue("code")
+	beneficiary := database.GetBeneficiary(code)
+
 	token := getToken()
 
 	payment := entity.PaymentRequest{
@@ -77,11 +110,11 @@ func payHandler(w http.ResponseWriter, r *http.Request) {
 			Email:         r.FormValue("email"),
 			ParticipantId: r.FormValue("bank"),
 		},
-		Beneficiary:           getBeneficiary(r.FormValue("code")),
+		Beneficiary:           beneficiary,
 		Amount:                FormatMoney(r.FormValue("amount")),
-		ReturnUri:             "http://localhost:8080/status",
-		WebhookUrl:            "http://localhost:8080/webhook",
-		ReferenceCode:         "be5ec8c9-6974-4830-94e3-363d1cfeb975",
+		ReturnUri:             getHost() + "status",
+		WebhookUrl:            getHost() + "webhook",
+		ReferenceCode:         beneficiary.Code, //TODO: PERSIST TRANSACTION IN DATABASE
 		TermsOfUseVersion:     "1",
 		TermsOfPrivacyVersion: "1",
 	}
@@ -106,7 +139,7 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 	var statusResponse entity.StatusResponse
 
 	if r.URL.Query().Get("success") == "true" {
-		statusResponse.Success = "Concluída com sucesso!"
+		statusResponse.Success = "Solicitação concluída com sucesso!"
 	}
 	statusResponse.PaymentId = r.URL.Query().Get("paymentId")
 	statusResponse.ReferenceCode = r.URL.Query().Get("referenceCode")
@@ -135,32 +168,50 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func participantsHandler(w http.ResponseWriter, r *http.Request) {
-	token := getToken()
-	participants, err := getParticipants(token)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 
 	wd, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
-	tmpl, err := template.ParseFiles(wd + "/static/payment_list.html")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	code := r.URL.Query().Get("code")
+	if code == "" {
+		tmpl, err := template.ParseFiles(wd + "/static/payment_register.html")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	paymentDTO := entity.PaymentDTO{}
-	paymentDTO.Data = participants.Data
-	paymentDTO.Beneficiary = getBeneficiary(r.URL.Query().Get("code"))
+		err = tmpl.Execute(w, nil)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		beneficiary := database.GetBeneficiary(code)
 
-	err = tmpl.Execute(w, paymentDTO)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		token := getToken()
+		participants, err := getParticipants(token)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		tmpl, err := template.ParseFiles(wd + "/static/payment_list.html")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		paymentDTO := entity.PaymentDTO{}
+		paymentDTO.Data = participants.Data
+		paymentDTO.Beneficiary = beneficiary
+
+		err = tmpl.Execute(w, paymentDTO)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
@@ -262,24 +313,6 @@ func getToken() string {
 	return tokenObj.AccessToken
 }
 
-func getBeneficiary(beneficiaryCode string) entity.Beneficiary {
-
-	//getById(beneficiaryCode) on database
-	//Code = ri5vano7rh1
-
-	beneficiary := entity.Beneficiary{
-		LocalInstrument: "MANU",
-		CPFCNPJ:         "28047925873",
-		Name:            "Ricardo Vano",
-		ISPB:            "60701190",
-		Issuer:          "6477",
-		Number:          "142035",
-		AccountType:     "CACC",
-		Code:            "ri5vano7rh1",
-	}
-	return beneficiary
-}
-
 func ReplaceRedirectUri(inputStr string) (string, error) {
 
 	inputURL, err := url.Parse(inputStr)
@@ -295,7 +328,7 @@ func ReplaceRedirectUri(inputStr string) (string, error) {
 	}
 
 	// replace the redirect_uri parameter with the new value
-	queryParams.Set("redirect_uri", "http://localhost.com:8080/status")
+	queryParams.Set("redirect_uri", getHost()+"status")
 
 	// construct the output URL
 	outputURL := inputURL.Scheme + "://" + inputURL.Host + inputURL.Path + "?" + queryParams.Encode()
@@ -333,4 +366,38 @@ func getBanks() []entity.Bank {
 		{Name: "Banco Intermedium", Code: "77", ISPB: "416968"},
 	}
 	return banks
+}
+
+func getRandonString() string {
+
+	timestamp := time.Now().Unix()
+	var chars = "abcdefghijklmnopqrstuvwxyz"
+
+	length := 4
+
+	ll := len(chars)
+	b := make([]byte, length)
+	rand.Read(b)
+	for i := 0; i < length; i++ {
+		b[i] = chars[int(b[i])%ll]
+	}
+
+	result := string(b) + strconv.FormatInt(timestamp, 10)
+	return result
+}
+
+func getHost() string {
+	host, err := os.Hostname()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fullUrl := ""
+	if host == "QT-MBP00093.local" {
+		fullUrl = "http://localhost/"
+	} else {
+		fullUrl = "http://www.cafedoamigo.com.br/"
+	}
+
+	return fullUrl
 }
