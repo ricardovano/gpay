@@ -79,6 +79,10 @@ type PaymentDTO struct {
 	Beneficiary Beneficiary           `json:"beneficiary"`
 }
 
+type RegisterDTO struct {
+	Banks []Bank `json:"banks"`
+}
+
 type Bank struct {
 	Name string
 	Code string

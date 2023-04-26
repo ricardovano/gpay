@@ -3,9 +3,85 @@
 
 <head>
     <title>Café do Amigo</title>
+    <script type="text/javascript" src="script.js"></script>
+    <link rel="stylesheet" href="global.css">
 </head>
 
 <body>
+
+    <div class='container'>
+        <div class='window'>
+            <div class='order-info'>
+                <div class='order-info-content'>
+                    <div class="divblock" style="text-align: center;">
+                        <img src="https://ob-public-files.s3.amazonaws.com/marca_colorida_open_finance.JPEG.jpg"
+                            height="30px" />
+                    </div>
+                    <div class="divblock">
+                        <h2>Cadastre-se para receber dinheiro através do Open Finance!</h2>
+                        <h2>Compartilhe o link que será enviado para seu e-mail!</h2>
+                        <h2>Qualquer pessoa com seu link consegue fazer pagamentos para você, sem revelar seus dados
+                            bancários ou mesmo a chave PIX!</h2>
+                    </div>
+                    <div class="divblock">
+                        <h3>Powered by </h3>
+                        <a href="https://quan.to/" target=”_blank”> <img
+                                src="https://quan.to/images/logo_header_dark.svg" height="30px" /></a>
+                    </div>
+                </div>
+            </div>
+            <div class='credit-info'>
+                <div class='credit-info-content'>
+                    <form action="/register" method="post">
+                        <div>
+                            <h4>Cadastre-se aqui:</h4>
+                        </div>
+                        <h4></h4>
+                        Informe seu CPF
+                        <input class='input-field' name="cpf"></input>
+                        Seu nome
+                        <input class='input-field' name="name"></input>
+                        Seu e-mail
+                        <input class='input-field' name="email"></input>
+
+
+                        <h4>Escolha o banco onde receberá dinheiro</h4>
+                        <table style="margin-top: 10px;" class='half-input-table'>
+                            <tr>
+                                <td>Selecione seu banco: </td>
+                                <td>
+
+                                    <select class="select" name="ispb">
+                                        {{range .Banks}}
+
+                                        <option class="select" name="ispb" value="{{.ISPB}}">{{.Name}}
+                                        </option>
+
+                                        {{end}}
+                                    </select>
+
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table style="margin-top: 10px;" class="half-input-table">
+                            <tr>
+                                <td> Agência
+                                    <input class='input-field' name="issuer"></input>
+                                </td>
+                                <td>
+                                    Conta corrente
+                                    <input class='input-field' name="number"></input>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <button class='pay-btn'>Registrar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </body>
 

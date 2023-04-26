@@ -85,9 +85,10 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		//data := database.GetAllBeneficiaries()
+		var dto entity.StatusResponse
+		dto.Banks = getBanks()
 
-		err = tmpl.Execute(w, "")
+		err = tmpl.Execute(w, dto)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -189,7 +190,10 @@ func participantsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err = tmpl.Execute(w, nil)
+		var dto entity.StatusResponse
+		dto.Banks = getBanks()
+
+		err = tmpl.Execute(w, dto)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
