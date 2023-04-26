@@ -31,7 +31,14 @@ func main() {
 	http.Handle("/cafe2.png", fs)
 	http.Handle("/cafe3.png", fs)
 	http.Handle("/cafe4.png", fs)
-	http.ListenAndServe(":80", nil)
+	err := http.ListenAndServe(":80", nil)
+
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println("Server running on port 80")
+	}
+
 }
 
 func registerHandler(w http.ResponseWriter, r *http.Request) {
