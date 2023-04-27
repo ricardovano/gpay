@@ -70,7 +70,22 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 
 		//SEND EMAIL WITH LINK TO THE FRIEND (FULL URL)
 
-		//REDIRECT TO REGISTER COMPLETE SITE
+		wd, err := os.Getwd()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		tmpl, err := template.ParseFiles(wd + "/static/payment_registered.html")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		err = tmpl.Execute(w, beneficiary)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	if r.Method == "GET" {
