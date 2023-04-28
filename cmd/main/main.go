@@ -144,10 +144,10 @@ func payHandler(w http.ResponseWriter, r *http.Request) {
 
 	response := postPayment(payment, token)
 
-	response.AuthenticationUri, err = ReplaceRedirectUri(response.AuthenticationUri)
-	if err != nil {
-		panic(err)
-	}
+	//response.AuthenticationUri, err = ReplaceRedirectUri(response.AuthenticationUri)
+	//if err != nil {
+	//	panic(err)
+	//}
 
 	http.Redirect(w, r, response.AuthenticationUri, http.StatusSeeOther)
 
@@ -303,7 +303,6 @@ func getParticipants(token string) (*entity.AuthorisationServers, error) {
 
 	for i, p := range participants {
 		for j, a := range p.AuthorisationServers {
-			println(a.CustomerFriendlyName)
 			if a.CustomerFriendlyName == "Nubank" {
 				data = append(data, a)
 			}
@@ -316,6 +315,9 @@ func getParticipants(token string) (*entity.AuthorisationServers, error) {
 			}
 			if strings.Contains(a.CustomerFriendlyName, "Bradesco Pessoa Física") {
 				a.CustomerFriendlyName = "Bradesco"
+				data = append(data, a)
+			}
+			if strings.Contains(a.CustomerFriendlyName, "Banco do Brasil") {
 				data = append(data, a)
 			}
 			j++
