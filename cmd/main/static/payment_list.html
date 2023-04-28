@@ -96,24 +96,15 @@
                         Seu e-mail
                         <input class='input-field' name="email"></input>
 
-                        <table class='half-input-table'>
-                            <tr>
-                                <td>Selecione seu banco: </td>
-                                <td>
+                        Escolha seu banco
+                        <select class="select" name="bank">
+                            {{range .Data}}
 
-                                    <select class="select" name="bank">
-                                        {{range .Data}}
+                            <option class="select" name="bank" value="{{.Id}}">{{.CustomerFriendlyName}}
+                            </option>
 
-                                        <option class="select" name="bank" value="{{.Id}}">{{.CustomerFriendlyName}}
-                                        </option>
-
-                                        {{end}}
-                                    </select>
-
-                                </td>
-                            </tr>
-
-                        </table>
+                            {{end}}
+                        </select>
 
                         <div>
                             <div class="line" style="margin-top: 20px;"></div>
@@ -122,10 +113,9 @@
                             <h2 class=" friend">{{ .Beneficiary.Name}} ({{ .Beneficiary.Code}})</h2>
                         </div>
 
-                        <label class="friend">Quer ser amigo? Clique aqui</label>
+                        <label class="friend">Quer ser amigo? <a href="/"> Clique aqui</a></label>
 
                         <button class='pay-btn'>Pagar</button>
-
 
                     </div>
                 </div>

@@ -303,10 +303,35 @@ func getParticipants(token string) (*entity.AuthorisationServers, error) {
 
 	for i, p := range participants {
 		for j, a := range p.AuthorisationServers {
+			println(a.CustomerFriendlyName)
 			if a.CustomerFriendlyName == "Nubank" {
 				data = append(data, a)
 			}
 			if a.CustomerFriendlyName == "Mercado Pago" {
+				data = append(data, a)
+			}
+			if a.CustomerFriendlyName == "Itaú" {
+				data = append(data, a)
+			}
+			if strings.Contains(a.CustomerFriendlyName, "CAIXA") {
+				a.CustomerFriendlyName = "Caixa"
+				data = append(data, a)
+			}
+			if strings.Contains(a.CustomerFriendlyName, "Bradesco Pessoa Física") {
+				a.CustomerFriendlyName = "Bradesco"
+				data = append(data, a)
+			}
+			if strings.Contains(a.CustomerFriendlyName, "Neon") {
+				data = append(data, a)
+			}
+			if strings.Contains(a.CustomerFriendlyName, "Banco Inter PF") {
+				a.CustomerFriendlyName = "Banco Inter"
+				data = append(data, a)
+			}
+			if strings.Contains(a.CustomerFriendlyName, "PagBank PagSeguro") {
+				data = append(data, a)
+			}
+			if strings.Contains(a.CustomerFriendlyName, "Banco do Brasil") {
 				data = append(data, a)
 			}
 			j++
@@ -380,16 +405,14 @@ func FormatCPF(cpf string) string {
 
 func getBanks() []entity.Bank {
 	banks := []entity.Bank{
-		{Name: "Banco BRADESCO", Code: "237", ISPB: "60746948"},
-		{Name: "Banco BTG PACTUAL", Code: "208", ISPB: "30306294"},
-		{Name: "Bancoob", Code: "756", ISPB: "2038232"},
+		{Name: "Banco Bradesco", Code: "237", ISPB: "60746948"},
+		{Name: "Banco BTG Pactual", Code: "208", ISPB: "30306294"},
 		{Name: "Banco Santander", Code: "33", ISPB: "90400888"},
 		{Name: "Banco Daycoval", Code: "707", ISPB: "62232889"},
 		{Name: "Banco do Brasil", Code: "1", ISPB: "0"},
 		{Name: "Caixa Economica Federal", Code: "104", ISPB: "360305"},
 		{Name: "Itaú Unibanco", Code: "341", ISPB: "60701190"},
 		{Name: "Nubank", Code: "260", ISPB: "18236120"},
-		{Name: "Banco Intermedium", Code: "77", ISPB: "416968"},
 	}
 	return banks
 }

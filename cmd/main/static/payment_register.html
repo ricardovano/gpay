@@ -19,9 +19,9 @@
                     </div>
                     <div class="divblock">
                         <h2>Cadastre-se para receber dinheiro através do Open Finance!</h2>
-                        <h2>Compartilhe o link que será enviado para seu e-mail!</h2>
-                        <h2>Qualquer pessoa com seu link consegue fazer pagamentos para você, sem revelar seus dados
-                            bancários ou mesmo a chave PIX!</h2>
+                        <h2>Compartilhe o link que será criado para você!</h2>
+                        <h2>Receba dinheiro de forma segura, sem compartilhar seus dados bancários ou mesmo a chave PIX!
+                        </h2>
                     </div>
                     <div class="divblock">
                         <h3>Powered by </h3>
@@ -44,25 +44,15 @@
                         Seu e-mail
                         <input class='input-field' name="email"></input>
 
+                        Escolha o banco onde receberá dinheiro
+                        <select class="select" name="ispb">
+                            {{range .Banks}}
 
-                        <h4>Escolha o banco onde receberá dinheiro</h4>
-                        <table style="margin-top: 10px;" class='half-input-table'>
-                            <tr>
-                                <td>Selecione seu banco: </td>
-                                <td>
+                            <option class="select" name="ispb" value="{{.ISPB}}">{{.Name}}
+                            </option>
 
-                                    <select class="select" name="ispb">
-                                        {{range .Banks}}
-
-                                        <option class="select" name="ispb" value="{{.ISPB}}">{{.Name}}
-                                        </option>
-
-                                        {{end}}
-                                    </select>
-
-                                </td>
-                            </tr>
-                        </table>
+                            {{end}}
+                        </select>
 
                         <table style="margin-top: 10px;" class="half-input-table">
                             <tr>
