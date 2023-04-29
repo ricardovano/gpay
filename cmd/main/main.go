@@ -309,10 +309,6 @@ func getParticipants(token string) (*entity.AuthorisationServers, error) {
 			if a.CustomerFriendlyName == "Mercado Pago" {
 				data = append(data, a)
 			}
-			if strings.Contains(a.CustomerFriendlyName, "CAIXA") {
-				a.CustomerFriendlyName = "Caixa"
-				data = append(data, a)
-			}
 			if strings.Contains(a.CustomerFriendlyName, "Bradesco Pessoa Física") {
 				a.CustomerFriendlyName = "Bradesco"
 				data = append(data, a)
