@@ -82,9 +82,3 @@ type PaymentDTO struct {
 type RegisterDTO struct {
 	Banks []Bank `json:"banks"`
 }
-
-type Bank struct {
-	Name string
-	Code string
-	ISPB string
-}

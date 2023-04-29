@@ -1,21 +1,19 @@
 package main
 
 import (
-	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/ricardovano/qpay/internal/entity"
 	"github.com/ricardovano/qpay/internal/infra/database"
+	"github.com/ricardovano/qpay/internal/quanto"
+	"github.com/ricardovano/qpay/internal/tools"
 )
 
 func main() {
@@ -52,7 +50,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 
 		var beneficiary entity.Beneficiary
 		beneficiary.LocalInstrument = "MANU"
-		beneficiary.CPFCNPJ = FormatCPF(r.FormValue("cpf"))
+		beneficiary.CPFCNPJ = tools.FormatCPF(r.FormValue("cpf"))
 		beneficiary.Name = r.FormValue("name")
 		beneficiary.ISPB = r.FormValue("ispb")
 		beneficiary.Issuer = r.FormValue("issuer")
@@ -61,7 +59,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		beneficiary.Email = r.FormValue("email")
 
 		//generate
-		beneficiary.Code = getRandonString()
+		beneficiary.Code = tools.GetRandonString()
 
 		//SAVE ON DATABASE
 		database.CreateBeneficiary(beneficiary)
@@ -101,7 +99,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var dto entity.StatusResponse
-		dto.Banks = getBanks()
+		dto.Banks = entity.GetBanks()
 
 		err = tmpl.Execute(w, dto)
 		if err != nil {
@@ -123,32 +121,26 @@ func payHandler(w http.ResponseWriter, r *http.Request) {
 	code := r.FormValue("code")
 	beneficiary := database.GetBeneficiary(code)
 
-	token := getToken()
+	token := quanto.GetToken()
 
 	payment := entity.PaymentRequest{
 		Type: "PIX",
 		Payer: entity.Payer{
 			Name:          r.FormValue("name"),
-			CPF:           FormatCPF(r.FormValue("cpf")),
+			CPF:           tools.FormatCPF(r.FormValue("cpf")),
 			Email:         r.FormValue("email"),
 			ParticipantId: r.FormValue("bank"),
 		},
 		Beneficiary:           beneficiary,
-		Amount:                FormatMoney(r.FormValue("amount")),
-		ReturnUri:             getHost() + "status",
-		WebhookUrl:            getHost() + "webhook",
+		Amount:                tools.FormatMoney(r.FormValue("amount")),
+		ReturnUri:             tools.GetHost() + "status",
+		WebhookUrl:            tools.GetHost() + "webhook",
 		ReferenceCode:         beneficiary.Code, //TODO: PERSIST TRANSACTION IN DATABASE
 		TermsOfUseVersion:     "1",
 		TermsOfPrivacyVersion: "1",
 	}
 
 	response := postPayment(payment, token)
-
-	//response.AuthenticationUri, err = ReplaceRedirectUri(response.AuthenticationUri)
-	//if err != nil {
-	//	panic(err)
-	//}
-
 	http.Redirect(w, r, response.AuthenticationUri, http.StatusSeeOther)
 
 	if err != nil {
@@ -166,7 +158,7 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	statusResponse.PaymentId = r.URL.Query().Get("paymentId")
 	statusResponse.ReferenceCode = r.URL.Query().Get("referenceCode")
-	statusResponse.Banks = getBanks()
+	statusResponse.Banks = entity.GetBanks()
 
 	wd, err := os.Getwd()
 	if err != nil {
@@ -206,7 +198,7 @@ func participantsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var dto entity.StatusResponse
-		dto.Banks = getBanks()
+		dto.Banks = entity.GetBanks()
 
 		err = tmpl.Execute(w, dto)
 		if err != nil {
@@ -216,8 +208,8 @@ func participantsHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		beneficiary := database.GetBeneficiary(code)
 
-		token := getToken()
-		participants, err := getParticipants(token)
+		token := quanto.GetToken()
+		participants, err := quanto.GetParticipants(token)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -271,164 +263,4 @@ func postPayment(payment entity.PaymentRequest, token string) entity.PaymentResp
 		fmt.Println("JSON data:", string(body))
 	}
 	return response
-}
-
-func getParticipants(token string) (*entity.AuthorisationServers, error) {
-	url := "https://api-quanto.com/opb-api/v1/participants/payments"
-	req, err := http.NewRequest("GET", url, nil)
-
-	oauth := "Bearer " + token
-	req.Header.Add("accept", "application/json")
-	req.Header.Add("authorization", oauth)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %v", err)
-	}
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve payments: %v", err)
-	}
-	defer resp.Body.Close()
-
-	var participants []entity.Participant
-	if err := json.NewDecoder(resp.Body).Decode(&participants); err != nil {
-		fmt.Println("Failed to decode JSON:", err)
-		body, _ := ioutil.ReadAll(resp.Body)
-		fmt.Println("JSON data:", string(body))
-	}
-
-	var data []entity.AuthorisationServer
-
-	for i, p := range participants {
-		for j, a := range p.AuthorisationServers {
-			if a.CustomerFriendlyName == "Nubank" {
-				data = append(data, a)
-			}
-			if a.CustomerFriendlyName == "Mercado Pago" {
-				data = append(data, a)
-			}
-			if strings.Contains(a.CustomerFriendlyName, "Bradesco Pessoa Física") {
-				a.CustomerFriendlyName = "Bradesco"
-				data = append(data, a)
-			}
-			if strings.Contains(a.CustomerFriendlyName, "Banco do Brasil") {
-				data = append(data, a)
-			}
-			j++
-		}
-		i++
-	}
-
-	var authorizationServers entity.AuthorisationServers
-	authorizationServers.Data = data
-	return &authorizationServers, nil
-}
-
-func getToken() string {
-	url := "https://api-quanto.com/v1/api/token"
-	payload := strings.NewReader("client_id=6abc0c4b-9ea7-41ce-b4ce-7465a4db20d5&client_secret=0cAHIMTwrj0pW3TdyNBctTiaaSpufRnh&grant_type=client_credentials")
-	req, _ := http.NewRequest("POST", url, payload)
-
-	req.Header.Add("accept", "application/json")
-	req.Header.Add("content-type", "application/x-www-form-urlencoded")
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer res.Body.Close()
-	var tokenObj entity.Token
-	json.NewDecoder(res.Body).Decode(&tokenObj)
-
-	fmt.Println("getting token...")
-	return tokenObj.AccessToken
-}
-
-func ReplaceRedirectUri(inputStr string) (string, error) {
-
-	inputURL, err := url.Parse(inputStr)
-	if err != nil {
-		fmt.Println("Invalid input string")
-		return "", err
-	}
-
-	queryParams, err := url.ParseQuery(inputURL.RawQuery)
-	if err != nil {
-		fmt.Println("Invalid input string")
-		return "", err
-	}
-
-	// replace the redirect_uri parameter with the new value
-	queryParams.Set("redirect_uri", getHost()+"status")
-
-	// construct the output URL
-	outputURL := inputURL.Scheme + "://" + inputURL.Host + inputURL.Path + "?" + queryParams.Encode()
-
-	// replace any occurrences of %2F with /
-	outputURL = strings.ReplaceAll(outputURL, "%2F", "/")
-
-	// print the output URL
-	fmt.Println(outputURL)
-
-	return outputURL, nil
-}
-
-func FormatMoney(amount string) string {
-	return strings.ReplaceAll(amount, ",", ".")
-}
-
-func FormatCPF(cpf string) string {
-	newCPF := strings.ReplaceAll(cpf, ".", "")
-	newCPF = strings.ReplaceAll(newCPF, "-", "")
-	return newCPF
-}
-
-func getBanks() []entity.Bank {
-	banks := []entity.Bank{
-		{Name: "Banco Bradesco", Code: "237", ISPB: "60746948"},
-		{Name: "Banco BTG Pactual", Code: "208", ISPB: "30306294"},
-		{Name: "Banco Santander", Code: "33", ISPB: "90400888"},
-		{Name: "Banco Daycoval", Code: "707", ISPB: "62232889"},
-		{Name: "Banco do Brasil", Code: "1", ISPB: "0"},
-		{Name: "Caixa Economica Federal", Code: "104", ISPB: "360305"},
-		{Name: "Itaú Unibanco", Code: "341", ISPB: "60701190"},
-		{Name: "Nubank", Code: "260", ISPB: "18236120"},
-	}
-	return banks
-}
-
-func getRandonString() string {
-
-	timestamp := time.Now().Unix()
-	var chars = "abcdefghijklmnopqrstuvwxyz"
-
-	length := 4
-
-	ll := len(chars)
-	b := make([]byte, length)
-	rand.Read(b)
-	for i := 0; i < length; i++ {
-		b[i] = chars[int(b[i])%ll]
-	}
-
-	result := string(b) + strconv.FormatInt(timestamp, 10)
-	return result
-}
-
-func getHost() string {
-	host, err := os.Hostname()
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fullUrl := ""
-	if host == "QT-MBP00093.local" {
-		fullUrl = "http://localhost/"
-	} else {
-		fullUrl = "http://www.cafedoamigo.com.br/"
-	}
-
-	return fullUrl
 }
