@@ -1,14 +1,12 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/ricardovano/qpay/internal/entity"
 	"github.com/ricardovano/qpay/internal/infra/database"
@@ -136,12 +134,12 @@ func payHandler(w http.ResponseWriter, r *http.Request) {
 		Amount:                tools.FormatMoney(r.FormValue("amount")),
 		ReturnUri:             tools.GetHost() + "status",
 		WebhookUrl:            tools.GetHost() + "webhook",
-		ReferenceCode:         beneficiary.Code, //TODO: PERSIST TRANSACTION IN DATABASE
+		ReferenceCode:         beneficiary.Code,
 		TermsOfUseVersion:     "1",
 		TermsOfPrivacyVersion: "1",
 	}
 
-	response := postPayment(payment, token)
+	response := quanto.PostPayment(payment, token)
 	http.Redirect(w, r, response.AuthenticationUri, http.StatusSeeOther)
 
 	if err != nil {
@@ -232,36 +230,4 @@ func participantsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-}
-
-func postPayment(payment entity.PaymentRequest, token string) entity.PaymentResponse {
-	url := "https://api-quanto.com/opb-api/v1/payments"
-
-	paymentBytes, err := json.Marshal(payment)
-	if err != nil {
-		panic(err)
-	}
-
-	payload := strings.NewReader(string(paymentBytes))
-	req, _ := http.NewRequest("POST", url, payload)
-
-	req.Header.Add("accept", "application/json")
-	req.Header.Add("content-type", "application/json")
-	oauth := "Bearer " + token
-	req.Header.Add("authorization", oauth)
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		panic(err)
-	}
-
-	defer res.Body.Close()
-
-	var response entity.PaymentResponse
-	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
-		fmt.Println("Failed to decode JSON:", err)
-		body, _ := ioutil.ReadAll(res.Body)
-		fmt.Println("JSON data:", string(body))
-	}
-	return response
 }

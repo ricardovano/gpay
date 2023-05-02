@@ -5,12 +5,16 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/ricardovano/qpay/config"
 	"github.com/ricardovano/qpay/internal/entity"
 )
 
 func GetToken() string {
-	url := "https://api-quanto.com/v1/api/token"
-	payload := strings.NewReader("client_id=6abc0c4b-9ea7-41ce-b4ce-7465a4db20d5&client_secret=0cAHIMTwrj0pW3TdyNBctTiaaSpufRnh&grant_type=client_credentials")
+
+	config := config.GetConfig()
+	url := config.TokenUrl
+
+	payload := strings.NewReader("client_id=" + config.ClientId + "&client_secret=" + config.ClientSecret + "&grant_type=" + config.GrantType)
 	req, _ := http.NewRequest("POST", url, payload)
 
 	req.Header.Add("accept", "application/json")
@@ -27,7 +31,10 @@ func GetToken() string {
 }
 
 func GetParticipants(token string) (*entity.AuthorisationServers, error) {
-	url := "https://api-quanto.com/opb-api/v1/participants/payments"
+
+	config := config.GetConfig()
+	url := config.ParticipantsUrl
+
 	req, err := http.NewRequest("GET", url, nil)
 
 	oauth := "Bearer " + token
@@ -76,4 +83,36 @@ func GetParticipants(token string) (*entity.AuthorisationServers, error) {
 	var authorizationServers entity.AuthorisationServers
 	authorizationServers.Data = data
 	return &authorizationServers, nil
+}
+
+func PostPayment(payment entity.PaymentRequest, token string) entity.PaymentResponse {
+
+	config := config.GetConfig()
+	url := config.PaymentUrl
+
+	paymentBytes, err := json.Marshal(payment)
+	if err != nil {
+		panic(err)
+	}
+
+	payload := strings.NewReader(string(paymentBytes))
+	req, _ := http.NewRequest("POST", url, payload)
+
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("content-type", "application/json")
+	oauth := "Bearer " + token
+	req.Header.Add("authorization", oauth)
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	defer res.Body.Close()
+
+	var response entity.PaymentResponse
+	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
+		panic(err)
+	}
+	return response
 }
