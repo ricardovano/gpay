@@ -4,19 +4,15 @@ import (
 	"fmt"
 
 	"github.com/go-redis/redis"
-)
-
-const (
-	dbPass    = ""
-	dbName    = "apis"
-	dbAddress = "localhost:6379"
+	"github.com/ricardovano/qpay/config"
 )
 
 func getClient() *redis.Client {
 
+	config := config.GetConfig()
 	client := redis.NewClient(&redis.Options{
-		Addr:     dbAddress,
-		Password: dbPass,
+		Addr:     config.RedisServer,
+		Password: config.RedisPassword,
 		DB:       0,
 	})
 	return client
