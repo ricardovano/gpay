@@ -12,8 +12,8 @@ import (
 
 	"github.com/ricardovano/qpay/internal/entity"
 	"github.com/ricardovano/qpay/internal/infra/database"
-	"github.com/ricardovano/qpay/internal/quanto"
-	"github.com/ricardovano/qpay/internal/tools"
+	"github.com/ricardovano/qpay/internal/infra/quanto"
+	"github.com/ricardovano/qpay/internal/infra/tools"
 )
 
 func main() {
@@ -40,6 +40,7 @@ func main() {
 }
 
 func registerHandler(w http.ResponseWriter, r *http.Request) {
+
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
