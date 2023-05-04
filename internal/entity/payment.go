@@ -24,8 +24,8 @@ type PaymentResponse struct {
 	ReturnUri             string      `json:"returnUri"`
 	WebhookUrl            string      `json:"webhookUrl"`
 	ReferenceCode         string      `json:"referenceCode"`
-	TermsOfUseVersion     string      `json:"termsOfUseVersion"`
-	TermsOfPrivacyVersion string      `json:"termsOfPrivacyVersion"`
+	TermsOfUseVersion     int         `json:"termsOfUseVersion"`
+	TermsOfPrivacyVersion int         `json:"termsOfPrivacyVersion"`
 	AuthenticationUri     string      `json:"authenticationUri"`
 	EndToEndId            string      `json:"endToEndId"`
 	TransactionId         string      `json:"transactionId"`

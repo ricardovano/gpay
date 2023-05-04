@@ -19,6 +19,7 @@ func main() {
 	http.HandleFunc("/pay", payHandler)
 	http.HandleFunc("/status", statusHandler)
 	http.HandleFunc("/register", registerHandler)
+	http.HandleFunc("/log", logHandler)
 
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/global.css", fs)
@@ -35,6 +36,27 @@ func main() {
 		fmt.Println("Server running on port 80")
 	}
 
+}
+
+func logHandler(w http.ResponseWriter, r *http.Request) {
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	tmpl, err := template.ParseFiles(wd + "/static/log.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var dto entity.StatusResponse
+	dto.Banks = entity.GetBanks()
+
+	err = tmpl.Execute(w, dto)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func registerHandler(w http.ResponseWriter, r *http.Request) {
