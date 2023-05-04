@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Quanto Pay</title>
+    <title>Café do Amigo</title>
     <link rel="stylesheet" href="global.css">
 </head>
 
@@ -43,24 +43,15 @@
                         <input class='input-field' name="email"></input>
 
 
-                        <h4>Escolha o banco onde receberá dinheiro</h4>
-                        <table style="margin-top: 10px;" class='half-input-table'>
-                            <tr>
-                                <td>Selecione seu banco: </td>
-                                <td>
+                        Escolha o banco onde receberá dinheiro
+                        <select class="select" name="ispb">
+                            {{range .Banks}}
 
-                                    <select class="select" name="ispb">
-                                        {{range .Banks}}
+                            <option class="select" name="ispb" value="{{.ISPB}}">{{.Name}}
+                            </option>
 
-                                        <option class="select" name="ispb" value="{{.ISPB}}">{{.Name}}
-                                        </option>
-
-                                        {{end}}
-                                    </select>
-
-                                </td>
-                            </tr>
-                        </table>
+                            {{end}}
+                        </select>
 
                         <table style="margin-top: 10px;" class="half-input-table">
                             <tr>
