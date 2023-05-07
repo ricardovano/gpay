@@ -22,6 +22,7 @@ func main() {
 	http.HandleFunc("/log", logHandler)
 
 	fs := http.FileServer(http.Dir("static"))
+	//http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	http.Handle("/global.css", fs)
 	http.Handle("/script.js", fs)
 	http.Handle("/cafe1.png", fs)
@@ -36,9 +37,12 @@ func main() {
 		fmt.Println("Server running on port 80")
 	}
 
+	log.Default()
+
 }
 
 func logHandler(w http.ResponseWriter, r *http.Request) {
+
 	wd, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
@@ -49,14 +53,14 @@ func logHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var dto entity.StatusResponse
-	dto.Banks = entity.GetBanks()
-
+	var dto entity.Log
+	dto.Beneficiaries = database.GetAllBeneficiaries()
 	err = tmpl.Execute(w, dto)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 }
 
 func registerHandler(w http.ResponseWriter, r *http.Request) {

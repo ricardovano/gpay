@@ -10,8 +10,23 @@
 <body>
 
     <div class='container'>
+        <div class='window'>
+            <div class='order-info'>
+                <div class='order-info-content'>
+                    <h2>Lista de amigos</h2>
+                </div>
+            </div>
+            <div class='credit-info'>
+                <div class='credit-info-content'>
 
+                    {{range .Beneficiaries}}
 
+                    <p>{{ .Name }} - {{ .Code }}</p>
+
+                    {{end}}
+                </div>
+            </div>
+        </div>
     </div>
 
 </body>

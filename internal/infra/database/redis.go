@@ -7,20 +7,20 @@ import (
 	"github.com/ricardovano/qpay/config"
 )
 
-func getClient() *redis.Client {
+func getClient(db int) *redis.Client {
 
 	config := config.GetConfig()
 	client := redis.NewClient(&redis.Options{
 		Addr:     config.RedisServer,
 		Password: config.RedisPassword,
-		DB:       0,
+		DB:       db,
 	})
 	return client
 }
 
-func getData(id string) string {
+func getData(id string, db int) string {
 
-	client := getClient()
+	client := getClient(db)
 	val, err := client.Get(id).Result()
 	if err != nil {
 		fmt.Println(err)
@@ -28,12 +28,21 @@ func getData(id string) string {
 	return string(val)
 }
 
-func setData(id string, obj string) error {
-	client := getClient()
+func setData(id string, obj string, db int) error {
+	client := getClient(db)
 	err := client.Set(id, obj, 0).Err()
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func getAll(db int) []string {
+	client := getClient(db)
+	val, err := client.Keys("*").Result()
+	if err != nil {
+		fmt.Println(err)
+	}
+	return val
 }
