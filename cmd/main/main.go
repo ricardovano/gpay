@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/ricardovano/qpay/internal/entity"
 	"github.com/ricardovano/qpay/internal/infra/database"
@@ -53,8 +54,9 @@ func logHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var dto entity.Log
+	var dto entity.LogDTO
 	dto.Beneficiaries = database.GetAllBeneficiaries()
+	dto.Logs = database.GetAllLogs()
 	err = tmpl.Execute(w, dto)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -167,6 +169,17 @@ func payHandler(w http.ResponseWriter, r *http.Request) {
 
 	response := quanto.PostPayment(payment, token)
 	http.Redirect(w, r, response.AuthenticationUri, http.StatusSeeOther)
+
+	var log entity.Log
+	log.Amount = payment.Amount
+	log.Beneficiary = payment.Beneficiary
+	log.Payer = payment.Payer
+	if err != nil {
+		log.Error = err.Error()
+	}
+	log.TransactionDate = time.Now()
+	log.Status = response.Status
+	database.CreateLog(log)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

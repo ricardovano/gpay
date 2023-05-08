@@ -13,15 +13,29 @@
         <div class='window'>
             <div class='order-info'>
                 <div class='order-info-content'>
-                    <h2>Lista de amigos</h2>
+                    <h2>Log</h2>
+                    {{ range .Logs}}
+
+                    <p>Data: {{ .TransactionDate }} <br />
+                        Erro: {{ .Error}} <br />
+                        Função: {{ .Function}} <br />
+                        Valor: {{ .Amount}} <br />
+                        Destino: {{ .Beneficiary}} <br />
+                        Origem: {{ .Payer}} <br />
+                        Status: {{ .Status}} <br />
+                    </p>
+                    {{end}}
                 </div>
             </div>
             <div class='credit-info'>
                 <div class='credit-info-content'>
+                    <h2>Lista de amigos registrados</h2>
 
                     {{range .Beneficiaries}}
 
-                    <p>{{ .Name }} - {{ .Code }}</p>
+                    <a href="http://cafedoamigo.com.br/?code={{ .Code}}">
+                        <p>{{ .Name }} - {{ .Code }}</p>
+                    </a>
 
                     {{end}}
                 </div>

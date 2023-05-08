@@ -6,8 +6,6 @@ import (
 	"github.com/ricardovano/qpay/internal/entity"
 )
 
-const db int = 0
-
 func CreateBeneficiary(beneficiary entity.Beneficiary) string {
 
 	jsonData, err := json.Marshal(beneficiary)
@@ -16,7 +14,7 @@ func CreateBeneficiary(beneficiary entity.Beneficiary) string {
 	}
 
 	data := string(jsonData)
-	err = setData(beneficiary.Code, data, db)
+	err = setData(beneficiary.Code, data, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -25,7 +23,7 @@ func CreateBeneficiary(beneficiary entity.Beneficiary) string {
 }
 
 func GetBeneficiary(id string) entity.Beneficiary {
-	data := getData(id, db)
+	data := getData(id, 0)
 
 	var beneficiary entity.Beneficiary
 	err := json.Unmarshal([]byte(data), &beneficiary)
@@ -36,7 +34,7 @@ func GetBeneficiary(id string) entity.Beneficiary {
 }
 
 func GetAllBeneficiaries() []entity.Beneficiary {
-	data := getAll(db)
+	data := getAll(0)
 	var beneficiary entity.Beneficiary
 	var beneficiaries []entity.Beneficiary
 	for _, s := range data {
