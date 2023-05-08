@@ -175,6 +175,8 @@ func payHandler(w http.ResponseWriter, r *http.Request) {
 	log.Payer = payment.Payer
 	if err != nil {
 		log.Error = err.Error()
+	} else {
+		log.Error = "AuthenticationUri: " + response.AuthenticationUri
 	}
 	log.TransactionDate = time.Now()
 	log.Status = response.Status

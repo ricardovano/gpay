@@ -17,8 +17,8 @@
                     {{ range .Logs}}
 
                     <p>Data: {{ .TransactionDate }} <br />
-                        Erro: {{ .Error}} <br />
-                        Status: {{ .Status}} <br />
+                        {{ .Error}} <br />
+                        {{ .Status}} <br />
                     </p>
                     {{end}}
                 </div>
