@@ -167,8 +167,7 @@ func payHandler(w http.ResponseWriter, r *http.Request) {
 		TermsOfPrivacyVersion: "1",
 	}
 
-	response := quanto.PostPayment(payment, token)
-	http.Redirect(w, r, response.AuthenticationUri, http.StatusSeeOther)
+	response, err := quanto.PostPayment(payment, token)
 
 	var log entity.Log
 	log.Amount = payment.Amount
@@ -180,6 +179,8 @@ func payHandler(w http.ResponseWriter, r *http.Request) {
 	log.TransactionDate = time.Now()
 	log.Status = response.Status
 	database.CreateLog(log)
+
+	http.Redirect(w, r, response.AuthenticationUri, http.StatusSeeOther)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

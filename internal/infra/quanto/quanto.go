@@ -85,14 +85,14 @@ func GetParticipants(token string) (*entity.AuthorisationServers, error) {
 	return &authorizationServers, nil
 }
 
-func PostPayment(payment entity.PaymentRequest, token string) entity.PaymentResponse {
+func PostPayment(payment entity.PaymentRequest, token string) (entity.PaymentResponse, error) {
 
 	config := config.GetConfig()
 	url := config.PaymentUrl
 
 	paymentBytes, err := json.Marshal(payment)
 	if err != nil {
-		panic(err)
+		return entity.PaymentResponse{}, err
 	}
 
 	payload := strings.NewReader(string(paymentBytes))
@@ -105,14 +105,14 @@ func PostPayment(payment entity.PaymentRequest, token string) entity.PaymentResp
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		panic(err)
+		return entity.PaymentResponse{}, err
 	}
 
 	defer res.Body.Close()
 
 	var response entity.PaymentResponse
 	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
-		panic(err)
+		return entity.PaymentResponse{}, err
 	}
-	return response
+	return response, nil
 }
